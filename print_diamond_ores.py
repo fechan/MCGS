@@ -5,7 +5,7 @@ root.withdraw()
 
 import anvil
 
-region = anvil.Region.from_file(filedialog.askopenfile()
+region = anvil.Region.from_file(filedialog.askopenfile())
 for chunkx in range(32):
     for chunkz in range(32):
         try:
