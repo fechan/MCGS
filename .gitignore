@@ -1,3 +1,5 @@
 venv
 .vscode
 __pycache__
+chunk_rasters
+chunks_merged.tif
