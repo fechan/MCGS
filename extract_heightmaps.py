@@ -1,0 +1,78 @@
+"""
+Loads a Minecraft .mca region file and outputs the heightmap of each chunk as an ESRI ASCII grid if
+able. This script can merge them into one big GeoTIFF if gdal_merge.py is provided.
+
+Requires nbt.py from Minecraft Overviewer (provided with MCGS)
+Tested on .mca files compatible with Minecraft 1.15.2 and gdal_merge.py on Arch Linux.
+"""
+
+import nbt
+import os, sys, subprocess
+from shutil import rmtree
+import tkinter as tk
+from tkinter import filedialog
+root = tk.Tk()
+root.withdraw()
+
+def unstream(bits_per_value, word_size, data):
+    """Converts data in an NBT long array into a list of ints"""
+    bl = 0
+    v = 0
+    decoded = []
+    for i in range(len(data)):
+        for n in range(word_size):
+            bit = (data[i] >> n) & 0x01
+            v = (bit << bl) | v
+            bl += 1
+            if bl >= bits_per_value:
+                decoded.append(v)
+                v = 0
+                bl = 0
+    return decoded
+
+#Set up and ask parameters
+region = nbt.load_region(filedialog.askopenfile(mode='rb'))
+folder_name = input("Name of folder to store chunk rasters in: (WILL BE OVERWRITTEN!) (chunk_rasters is default) ")
+if not folder_name:
+    folder_name = "chunk_rasters"
+try:
+    os.mkdir(folder_name)
+except FileExistsError:
+    print(f"Info: {folder_name} exists! Deleting.")
+    rmtree(folder_name)
+    os.mkdir(folder_name)
+merge = input("Merge chunk rasters? (Uses gdal_merge.py) (y/n, y is default): ").upper() != "N"
+if merge:
+    gdal_path = input("Path to gdal_merge.py? (/usr/bin/gdal_merge.py is default) ")
+    if not gdal_path:
+        gdal_path = "/usr/bin/gdal_merge.py"
+
+#Start exporting rasters
+for chunkx, chunkz in region.get_chunks():
+    chunk = region.load_chunk(chunkx, chunkz)
+    try:
+        heightmap = chunk[1]['Level']['Heightmaps']['WORLD_SURFACE']
+    except KeyError:
+        print(f"No compatible heightmap found for chunk {chunkx}, {chunkz}")
+        continue
+    decoded = unstream(9, 64, heightmap)
+
+    asc_data = f"""ncols 16
+nrows 16
+xllcorner {chunk[1]['Level']['xPos']*16}
+yllcorner {-chunk[1]['Level']['zPos']*16 - 16}
+cellsize 1
+nodata_value 0
+"""
+    asc_data += ' '.join(str(v) for v in decoded)
+    with open(os.path.join(folder_name, f"chunk_{chunk[1]['Level']['xPos']}_{chunk[1]['Level']['zPos']}.asc"), 'w') as asc_file:
+        asc_file.write(asc_data)
+        asc_file.close()
+print("Chunk raster export complete!")
+
+#Merge rasters if requested
+if merge:
+    print("Trying to merge chunk rasters...")
+    merge_command = ["python", gdal_path, "-o", "chunks_merged.tif"]
+    merge_command.extend([os.path.join(folder_name, file) for file in os.listdir(folder_name)])
+    subprocess.call(merge_command)
