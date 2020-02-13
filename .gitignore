@@ -3,3 +3,4 @@ venv
 __pycache__
 chunk_rasters
 chunks_merged.tif
+chunks_merged.tif.aux.xml
