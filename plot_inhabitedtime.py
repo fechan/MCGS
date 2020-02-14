@@ -1,3 +1,11 @@
+"""
+Loads a Minecraft .mca region file and plots the InhabitedTime of each chunk in the region into an
+ESRI ASCII grid.
+
+Requires nbt.py from Minecraft Overviewer (provided with MCGS)
+Tested on .mca files compatible with Minecraft 1.15.2 on Arch Linux.
+"""
+
 import nbt
 
 import tkinter as tk
@@ -11,6 +19,8 @@ if not plot_name:
     plot_name = "inhabitedtime_plot.asc"
 mirror = input("Mirror chunks vertically? (North is down, but coordinates match Minecraft) (y/n, y is default): ").upper() != "N"
 
+#Start exporting plot
+print("Trying to export InhabitedTime plot...")
 xllcorner = 0
 yllcorner = 0
 asc_data = ""
@@ -38,3 +48,4 @@ nodata_value -1
 with open(plot_name, 'w') as asc_file:
         asc_file.write(asc_header + asc_data)
         asc_file.close()
+print("Plot export complete!")

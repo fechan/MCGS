@@ -69,6 +69,7 @@ if merge:
         merged_filename = "chunks_merged.tif"
 
 #Start exporting rasters
+print("Trying to export chunk rasters...")
 for chunkx, chunkz in region.get_chunks():
     chunk = region.load_chunk(chunkx, chunkz)
     try:
