@@ -39,6 +39,16 @@ def mirror_vertical(row_size, data):
 
 #Set up and ask parameters
 region = nbt.load_region(filedialog.askopenfile(mode='rb'))
+print("There are several heightmaps that can be exported:")
+print("MOTION_BLOCKING")
+print("MOTION_BLOCKING_NO_LEAVES")
+print("OCEAN_FLOOR")
+print("OCEAN_FLOOR_WG")
+print("WORLD_SURFACE")
+print("WORLD_SURFACE_WG")
+heightmap_key = input("Which one do you want to export? (OCEAN_FLOOR is default) ")
+if not heightmap_key:
+    heightmap_key = "OCEAN_FLOOR"
 folder_name = input("Name of folder to store chunk rasters in: (WILL BE OVERWRITTEN!) (chunk_rasters is default) ")
 if not folder_name:
     folder_name = "chunk_rasters"
@@ -62,7 +72,7 @@ if merge:
 for chunkx, chunkz in region.get_chunks():
     chunk = region.load_chunk(chunkx, chunkz)
     try:
-        heightmap = chunk[1]['Level']['Heightmaps']['WORLD_SURFACE']
+        heightmap = chunk[1]['Level']['Heightmaps'][heightmap_key]
     except KeyError:
         print(f"No compatible heightmap found for chunk {chunkx}, {chunkz}")
         continue
@@ -87,8 +97,8 @@ print("Chunk raster export complete!")
 if merge:
     try:
         os.remove(merged_filename)
-    except FileNotFoundError as e:
-        print(e)
+    except FileNotFoundError:
+        pass
     print("Trying to merge chunk rasters...")
     merge_command = ["python", gdal_path, "-o", merged_filename]
     merge_command.extend([os.path.join(folder_name, file) for file in os.listdir(folder_name)])
