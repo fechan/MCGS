@@ -2,5 +2,7 @@ venv
 .vscode
 __pycache__
 chunk_rasters
-chunks_merged.tif
-chunks_merged.tif.aux.xml
+*.tif
+*.tif.aux.xml
+*.asc
+*.asc.aux.xml
