@@ -54,6 +54,9 @@ if merge:
     gdal_path = input("Path to gdal_merge.py? (/usr/bin/gdal_merge.py is default) ")
     if not gdal_path:
         gdal_path = "/usr/bin/gdal_merge.py"
+    merged_filename = input("Name of merged file? (chunks_merged.tif is default) ")
+    if not merged_filename:
+        merged_filename = "chunks_merged.tif"
 
 #Start exporting rasters
 for chunkx, chunkz in region.get_chunks():
@@ -83,10 +86,10 @@ print("Chunk raster export complete!")
 #Merge rasters if requested
 if merge:
     try:
-        os.remove("chunks_merged.tif")
+        os.remove(merged_filename)
     except FileNotFoundError as e:
         print(e)
     print("Trying to merge chunk rasters...")
-    merge_command = ["python", gdal_path, "-o", "chunks_merged.tif"]
+    merge_command = ["python", gdal_path, "-o", merged_filename]
     merge_command.extend([os.path.join(folder_name, file) for file in os.listdir(folder_name)])
     subprocess.call(merge_command)
