@@ -14,6 +14,7 @@ from tkinter import filedialog
 root = tk.Tk()
 root.withdraw()
 
+#Utility functions
 def unstream(bits_per_value, word_size, data):
     """Converts data in an NBT long array into a list of ints"""
     bl = 0
@@ -30,6 +31,12 @@ def unstream(bits_per_value, word_size, data):
                 bl = 0
     return decoded
 
+def mirror_vertical(row_size, data):
+    """Vertically mirrors a 1D list representation of a chunk with a width of row_size"""
+    data = [data[x:x+row_size] for x in range(0, len(data), row_size)]  #split into rows
+    data = data[::-1]                                                   #reverse row order
+    return [block for row in data for block in row]                     #flatten
+
 #Set up and ask parameters
 region = nbt.load_region(filedialog.askopenfile(mode='rb'))
 folder_name = input("Name of folder to store chunk rasters in: (WILL BE OVERWRITTEN!) (chunk_rasters is default) ")
@@ -41,6 +48,7 @@ except FileExistsError:
     print(f"Info: {folder_name} exists! Deleting.")
     rmtree(folder_name)
     os.mkdir(folder_name)
+mirror = input("Mirror chunks vertically? (North is down, but coordinates match Minecraft) (y/n, y is default): ").upper() != "N" 
 merge = input("Merge chunk rasters? (Uses gdal_merge.py) (y/n, y is default): ").upper() != "N"
 if merge:
     gdal_path = input("Path to gdal_merge.py? (/usr/bin/gdal_merge.py is default) ")
@@ -56,11 +64,13 @@ for chunkx, chunkz in region.get_chunks():
         print(f"No compatible heightmap found for chunk {chunkx}, {chunkz}")
         continue
     decoded = unstream(9, 64, heightmap)
+    if mirror:
+        decoded = mirror_vertical(16, decoded)
 
     asc_data = f"""ncols 16
 nrows 16
 xllcorner {chunk[1]['Level']['xPos']*16}
-yllcorner {-chunk[1]['Level']['zPos']*16 - 16}
+yllcorner {(1 if mirror else -1)*chunk[1]['Level']['zPos']*16 - (0 if mirror else 16)}
 cellsize 1
 nodata_value 0
 """
@@ -72,6 +82,10 @@ print("Chunk raster export complete!")
 
 #Merge rasters if requested
 if merge:
+    try:
+        os.remove("chunks_merged.tif")
+    except FileNotFoundError as e:
+        print(e)
     print("Trying to merge chunk rasters...")
     merge_command = ["python", gdal_path, "-o", "chunks_merged.tif"]
     merge_command.extend([os.path.join(folder_name, file) for file in os.listdir(folder_name)])
