@@ -2,18 +2,19 @@
 Loads a Minecraft .mca region file and plots the InhabitedTime of each chunk in the region into an
 ESRI ASCII grid.
 
-Requires nbt.py from Minecraft Overviewer (provided with MCGS)
+Requires nbt.py from Minecraft Overviewer renamed as overviewernbt.py to prevent name collision
+(provided with MCGS)
 Tested on .mca files compatible with Minecraft 1.15.2 on Arch Linux.
 """
 
-import nbt
+import overviewernbt
 
 import tkinter as tk
 from tkinter import filedialog
 root = tk.Tk()
 root.withdraw()
 
-region = nbt.load_region(filedialog.askopenfile(mode='rb'))
+region = overviewernbt.load_region(filedialog.askopenfile(mode='rb'))
 plot_name = input("Name of inhabitedtime plot: (inhabitedtime_plot.asc is default) ")
 if not plot_name:
     plot_name = "inhabitedtime_plot.asc"

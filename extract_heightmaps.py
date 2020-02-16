@@ -2,11 +2,12 @@
 Loads a Minecraft .mca region file and outputs the heightmap of each chunk as an ESRI ASCII grid if
 able. This script can merge them into one big GeoTIFF if gdal_merge.py is provided.
 
-Requires nbt.py from Minecraft Overviewer (provided with MCGS)
+Requires nbt.py from Minecraft Overviewer renamed as overviewernbt.py to prevent name collision
+(provided with MCGS)
 Tested on .mca files compatible with Minecraft 1.15.2 and gdal_merge.py on Arch Linux.
 """
 
-import nbt
+import overviewernbt
 import os, sys, subprocess
 from shutil import rmtree
 import tkinter as tk
@@ -38,7 +39,7 @@ def mirror_vertical(row_size, data):
     return [block for row in data for block in row]                     #flatten
 
 #Set up and ask parameters
-region = nbt.load_region(filedialog.askopenfile(mode='rb'))
+region = overviewernbt.load_region(filedialog.askopenfile(mode='rb'))
 print("There are several heightmaps that can be exported:")
 print("MOTION_BLOCKING")
 print("MOTION_BLOCKING_NO_LEAVES")

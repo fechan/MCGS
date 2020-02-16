@@ -40,8 +40,9 @@ for chunkx in range(32):
                             point.setAttributes([block.id, ore_x, y, ore_z])
                             pr.addFeatures([point])
                             print(block.id, "at", chunk.x.value*16+x, y, chunk.z.value*16+z)
-        except:
-            pass
+        except Exception as e:
+            if str(e) == "Unexistent chunk":
+                print("Can't load chunk at", chunkx, chunkz)
 
 # update layer's extent when new features have been added
 # because change of extent in provider is not propagated to the layer
