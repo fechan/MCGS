@@ -6,7 +6,7 @@ import math;
 
 import overviewernbt
 
-SEARCH_BLOCK = "minecraft:obsidian" #the block name you want to print the positions of
+SEARCH_BLOCK = "minecraft:diamond_ore" #the block name you want to print the positions of
 
 #Utility functions
 def unstream(bits_per_value, word_size, data):
