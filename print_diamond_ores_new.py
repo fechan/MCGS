@@ -46,11 +46,11 @@ def scan_section(section, search_block):
 region = overviewernbt.load_region(filedialog.askopenfilename())
 for chunkx in range(32):
     for chunkz in range(32):
-        try:
-            chunk = region.load_chunk(chunkx, chunkz)
+        chunk = region.load_chunk(chunkx, chunkz)
+        if chunk == None:
+            print("Chunk", chunkx, chunkz, "cannot be loaded!")
+        else:
             for section in chunk[1]['Level']['Sections']:
                 if "Palette" in section:
                     if SEARCH_BLOCK in [block['Name'] for block in section['Palette']]: #only scan section if desired block is in its palette
                         scan_section(section, SEARCH_BLOCK)
-        except Exception as e:
-            print(e)
