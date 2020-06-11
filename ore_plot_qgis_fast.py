@@ -60,11 +60,11 @@ def scan_section(section, tracked_ores):
                     ore_x = chunk_x + x
                     ore_y = chunk_y + y
                     ore_z = chunk_z + z
-                    ore_id = palette[states[block_index]]
+                    ore_id = palette[states[block_index]]['Name']
 
                     point = QgsFeature()
                     point.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(ore_x, ore_z)))
-                    point.setAttributes([ore_id, ore_x, y, ore_z])
+                    point.setAttributes([ore_id, ore_x, ore_y, ore_z])
                     pr.addFeatures([point])
                     print(ore_id, "at", ore_x, ore_y, ore_z)
 
