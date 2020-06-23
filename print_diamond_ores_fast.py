@@ -13,7 +13,7 @@ NETHER_BLOCKSTATES_DATAVERSION = 2529 #minimum DataVersion using the 1.16 BlockS
 #Utility functions
 def unstream(bits_per_value, word_size, data):
     """Converts data in an NBT long array into a list of ints, used before the introduction of the
-    new BlockStates format introduced in 20w19a"""
+    new BlockStates format introduced in 20w17a"""
     bl = 0
     v = 0
     decoded = []
@@ -30,7 +30,7 @@ def unstream(bits_per_value, word_size, data):
 
 def nether_unstream(bits_per_value, data):
     """Converts data in an NBT long array into a list of ints, used after the introduction of the
-    new BlockStates format introduced in 20w19a and used in the 1.16 Nether Update (the one with 0s
+    new BlockStates format introduced in 20w17a and used in the 1.16 Nether Update (the one with 0s
     padding each LONG if the size (bits) isn't a multiple of 64).
     
     Adapted from Minecraft Overviewer's overviewer_core/world.py, but doesn't depend on numpy"""
