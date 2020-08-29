@@ -15,6 +15,8 @@ from tkinter import filedialog
 root = tk.Tk()
 root.withdraw()
 
+NETHER_BLOCKSTATES_DATAVERSION = 2529 #minimum DataVersion using the 1.16 BlockStates format (20w17a)
+
 #Utility functions
 def unstream(bits_per_value, word_size, data):
     """Converts data in an NBT long array into a list of ints"""
@@ -31,6 +33,23 @@ def unstream(bits_per_value, word_size, data):
                 v = 0
                 bl = 0
     return decoded
+
+def nether_unstream(bits_per_value, data):
+    """Converts data in an NBT long array into a list of ints, used after the introduction of the
+    new BlockStates format introduced in 20w17a and used in the 1.16 Nether Update (the one with 0s
+    padding each LONG if the size (bits) isn't a multiple of 64).
+    
+    Adapted from Minecraft Overviewer's overviewer_core/world.py, but doesn't depend on numpy"""
+    n = 256
+    result = [0] * n
+    shorts_per_long = 64 // bits_per_value
+    mask = (1 << bits_per_value) - 1
+
+    for i in range(shorts_per_long):
+        j = (n + shorts_per_long - 1 - i) // shorts_per_long
+        result[i::shorts_per_long] = [(b >> (bits_per_value * i)) & mask for b in data[:j]]
+    
+    return result
 
 def mirror_vertical(row_size, data):
     """Vertically mirrors a 1D list representation of a chunk with a width of row_size"""
@@ -78,7 +97,10 @@ for chunkx, chunkz in region.get_chunks():
     except KeyError:
         print(f"No compatible heightmap found for chunk {chunkx}, {chunkz}")
         continue
-    decoded = unstream(9, 64, heightmap)
+    if chunk[1]['DataVersion'] < NETHER_BLOCKSTATES_DATAVERSION:
+        decoded = unstream(9, 64, heightmap)
+    else:
+        decoded = nether_unstream(9, heightmap)
     if mirror:
         decoded = mirror_vertical(16, decoded)
 
