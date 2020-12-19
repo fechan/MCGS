@@ -60,12 +60,19 @@ def scan_section(section, search_block):
     chunk_y = 16*section['Y']
     chunk_z = chunk[1]['Level']['zPos']*16
 
-    for y in range(16):
-        for x in range(16):
-            for z in range(16):
-                block_index = y*16*16 + z*16 + x
-                if palette[states[block_index]]['Name'] == search_block:
-                    print(chunk_x + x, chunk_y + y, chunk_z + z, palette[states[block_index]])
+    #first find where in the palette our desired block appears
+    palette_indexes = [index for index, block in enumerate(palette) if block["Name"] == search_block]
+    #then, find the index of blocks which exist in the above palette index list
+    states_indexes = [index for index, block in enumerate(states) if block in palette_indexes]
+
+    for index in states_indexes:
+        #the hex magic works because chunk sections are 16*16*16 blocks, sort of like bitwise operations
+        coordinates = (
+            (index & 0x00f) + chunk_x,
+            (index & 0xf00) // 256 + chunk_y,
+            (index & 0x0f0) // 16 + chunk_z
+            )
+        print(coordinates)
 
 region = overviewernbt.load_region(filedialog.askopenfilename())
 for chunkx in range(32):
