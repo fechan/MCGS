@@ -52,6 +52,17 @@ def nether_unstream(bits_per_value, data):
     
     return result
 
+def index_to_coordinates(index, chunk_x, chunk_y, chunk_z):
+    """Converts an index in the BlockStates array to its corresponding coordinates in the world.
+
+    The hex magic works because each chunk section is 16*16*16 blocks, so the hexidecimal digits
+    in the index represent the block's (y,x,z) in that order. It's similar to bitwise flags"""
+    return (
+        (index & 0x00f) + chunk_x,
+        (index & 0xf00) // 256 + chunk_y,
+        (index & 0x0f0) // 16 + chunk_z
+        )
+
 # create layer
 layer = QgsVectorLayer("Point", "ores", "memory")
 pr = layer.dataProvider()
@@ -77,24 +88,23 @@ def scan_section(section, tracked_ores):
     chunk_y = 16*section['Y']
     chunk_z = chunk[1]['Level']['zPos']*16
 
-    for y in range(16):
-        for x in range(16):
-            for z in range(16):
-                block_index = y*16*16 + z*16 + x
-                if palette[states[block_index]]['Name'] in tracked_ores:
-                    ore_x = chunk_x + x
-                    ore_y = chunk_y + y
-                    ore_z = chunk_z + z
-                    ore_id = palette[states[block_index]]['Name']
+    #coordinates of the chunk at its lowest (x,y,z)
+    chunk_x = chunk[1]['Level']['xPos']*16
+    chunk_y = 16*section['Y']
+    chunk_z = chunk[1]['Level']['zPos']*16
 
-                    point = QgsFeature()
-                    point.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(ore_x, ore_z)))
-                    point.setAttributes([ore_id, ore_x, ore_y, ore_z])
-                    pr.addFeatures([point])
-                    print(ore_id, "at", ore_x, ore_y, ore_z)
+    #first find where in the palette our desired blocks appear
+    palette_indexes = [index for index, block in enumerate(palette) if block["Name"] in tracked_ores]
+    #then, find the index of blocks which exist in the above palette index list
+    blocks = [(index, palette[block]) for index, block in enumerate(states) if block in palette_indexes]
+
+    coordinates = [(index_to_coordinates(index, chunk_x, chunk_y, chunk_z), block_data) for index, block_data in blocks]
+    return coordinates
 
 region = overviewernbt.load_region(QFileDialog.getOpenFileName()[0])
+print("Ore plot started!")
 
+coordinates = []
 for chunkx in range(32):
     for chunkz in range(32):
         chunk = region.load_chunk(chunkx, chunkz)
@@ -104,7 +114,16 @@ for chunkx in range(32):
             for section in chunk[1]['Level']['Sections']:
                 if "Palette" in section:
                     if not set(TRACKED_ORES).isdisjoint([block['Name'] for block in section['Palette']]): #only scan section if palette has a tracked ore
-                        scan_section(section, TRACKED_ORES)
+                        coordinates += scan_section(section, TRACKED_ORES)
+
+for block in coordinates:
+    ore_x, ore_y, ore_z = block[0]
+    ore_data = block[1]
+
+    point = QgsFeature()
+    point.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(ore_x, ore_z)))
+    point.setAttributes([str(ore_data), ore_x, ore_y, ore_z])
+    pr.addFeatures([point])
 
 # update layer's extent when new features have been added
 # because change of extent in provider is not propagated to the layer
