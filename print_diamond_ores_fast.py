@@ -79,7 +79,7 @@ def scan_section(section, search_block):
     coordinates = [index_to_coordinates(index, chunk_x, chunk_y, chunk_z) for index in states_indexes]
     return coordinates
 
-region = overviewernbt.load_region("/home/compupro/.local/share/multimc/instances/1.16/.minecraft/saves/Building Creative/region/r.0.0.mca")
+region = overviewernbt.load_region(filedialog.askopenfilename())
 coordinates = []
 for chunkx in range(32):
     for chunkz in range(32):
