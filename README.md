@@ -1,4 +1,6 @@
 # MCGS
+![MCGS Logo](https://user-images.githubusercontent.com/56131910/116846288-d31be280-ab9c-11eb-9b4f-669b33a0ecfb.png)
+
 Minecraft Geological Survey - Tools for mapping and analyzing Minecraft maps
 Featured in "Visualizing player engagement with virtual spaces using GIS" (SIGBOVIK 2020, page 273)
 
